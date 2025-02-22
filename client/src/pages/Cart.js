@@ -22,6 +22,9 @@ const Cart = () => {
   const handlePlaceOrder = () => {
     dispatch(placeOrder());
   };
+  console.log(cart.products);
+  
+
   
   if (loading) return <Typography variant="h4">Loading cart...</Typography>;
   if (error)
@@ -37,13 +40,13 @@ const Cart = () => {
       <Typography variant="h3" align="center" gutterBottom>
         Your Cart
       </Typography>
-      {cart.length === 0 ? (
+      {cart?.products?.length === 0 ? (
         <Typography variant="h5" align="center">
           Cart is empty
         </Typography>
       ) : (
         <Grid container spacing={3} justifyContent="center">
-          {cart.products.map((item) => (
+          {cart?.products?.map((item) => (
             <Grid item key={item.productId._id}>
               <Card sx={{ minWidth: 300 }}>
                 <CardContent>

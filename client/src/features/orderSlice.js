@@ -8,7 +8,7 @@ const initialState = {
 };
 
 // Fetch orders
-export const fetchOrders = createAsyncThunk("orders/fetch", async (_, thunkAPI) => {
+export const fetchOrders = createAsyncThunk("order/fetch", async (_, thunkAPI) => {
   try {
     const token = thunkAPI.getState().auth.token;
     const res = await fetchOrdersAPI(token);
@@ -19,7 +19,7 @@ export const fetchOrders = createAsyncThunk("orders/fetch", async (_, thunkAPI) 
 });
 
 // Place an order
-export const placeOrder = createAsyncThunk("orders/place", async (_, thunkAPI) => {
+export const placeOrder = createAsyncThunk("order/place", async (_, thunkAPI) => {
   try {
     const token = thunkAPI.getState().auth.token;
     const res = await placeOrderAPI(token);
