@@ -1,34 +1,59 @@
 const Order = require("../models/Order");
 const Cart = require("../models/Cart");
 
-exports.placeOrder = async (req, res) => {
+// Place an order
+const placeOrder = async (req, res) => {
   try {
     const { shippingAddress } = req.body;
     const userId = req.user.id;
-    
-    const cart = await Cart.findOne({ userId }).populate("products.productId");
-    if (!cart || cart.products.length === 0) return res.status(400).json({ message: "Cart is empty" });
 
-    const totalPrice = cart.products.reduce((acc, item) => acc + item.productId.price * item.quantity, 0);
-    const order = await Order.create({
-      userId,
-      products: cart.products.map(p => ({ productId: p.productId._id, quantity: p.quantity, price: p.productId.price })),
-      totalPrice,
-      shippingAddress
+    // Fetch user's cart
+    const cart = await Cart.findOne({ userId }).populate("products.productId");
+
+    if (!cart || cart.products.length === 0) {
+      return res.status(400).json({ message: "Cart is empty" });
+    }
+
+    // Calculate total price
+    let totalPrice = 0;
+    const products = cart.products.map((item) => {
+      totalPrice += item.quantity * item.productId.price;
+      return {
+        productId: item.productId._id,
+        quantity: item.quantity,
+        price: item.productId.price,
+      };
     });
 
-    await Cart.deleteOne({ userId });
+    // Create the order
+    const order = new Order({
+      userId,
+      products,
+      totalPrice,
+      shippingAddress,
+    });
+
+    await order.save();
+
+    // Clear user's cart after placing order
+    await Cart.findOneAndDelete({ userId });
+
     res.status(201).json({ message: "Order placed successfully", order });
   } catch (error) {
-    res.status(500).json({ message: "Server error" });
+    res.status(500).json({ message: "Server error", error: error.message });
   }
 };
 
-exports.getOrders = async (req, res) => {
+// Get user's orders
+const getOrders = async (req, res) => {
   try {
-    const orders = await Order.find({ userId: req.user.id }).populate("products.productId");
-    res.json(orders);
+    const userId = req.user.id;
+    const orders = await Order.find({ userId }).sort({ createdAt: -1 });
+
+    res.json({ orders });
   } catch (error) {
-    res.status(500).json({ message: "Server error" });
+    res.status(500).json({ message: "Server error", error: error.message });
   }
 };
+
+module.exports = { placeOrder, getOrders };
